@@ -12,7 +12,7 @@ function App() {
         <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/players" element={<PlayersPage />} />
-            <Route path="/game" element={<GamePage />} />
+            <Route path="/match/:id" element={<GamePage />} />
         </Routes>
       </BrowserRouter>
     </>

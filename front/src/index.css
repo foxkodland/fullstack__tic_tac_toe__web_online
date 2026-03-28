@@ -1,16 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 :root {
+  --border-color: #3d444d;
+  --button-color: #20539b;
+  --surface-depth-4: #192639;
 
+  
   /* цвета на сайте */
   --surface-depth-1: #0d1117;
   /* фон */
-  --surface-depth-2: #010409;
+  
   /* темная шапка, подвал */
   --surface-depth-3: #151b23;
   /* блоки */
-  --surface-depth-4: #192639;
-  --border-color: #3d444d;
+  
+
   --underlineNav-borderColor-active: #f78166;
   --accent-color: #3a6097;
   /* --accent-color: #1f6feb; */
