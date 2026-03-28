@@ -1,6 +1,8 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 
 import LoginPage from './pages/LoginPage/LoginPage.tsx';
+import PlayersPage from "./pages/PlayersPage/PlayersPage.tsx";
+import GamePage from "./pages/GamePage/GamePage.tsx";
 
 
 function App() {
@@ -9,6 +11,8 @@ function App() {
       <BrowserRouter>
         <Routes>
             <Route path="/" element={<LoginPage />} />
+            <Route path="/players" element={<PlayersPage />} />
+            <Route path="/game" element={<GamePage />} />
         </Routes>
       </BrowserRouter>
     </>
