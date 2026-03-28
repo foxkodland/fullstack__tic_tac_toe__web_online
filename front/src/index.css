@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+:root {
+
+  /* цвета на сайте */
+  --surface-depth-1: #0d1117;
+  /* фон */
+  --surface-depth-2: #010409;
+  /* темная шапка, подвал */
+  --surface-depth-3: #151b23;
+  /* блоки */
+  --surface-depth-4: #192639;
+  --border-color: #3d444d;
+  --underlineNav-borderColor-active: #f78166;
+  --accent-color: #3a6097;
+  /* --accent-color: #1f6feb; */
+
+  /* размеры */
+  --min-height-content: calc(100vh - 138px);
+  --width-content: 950px;
+  --width-max-content: 1280px;
+  --width-super-max-content: 1480px;
+  --padding-top-content: 30px;
+  --padding-inline: 75px;
+
+  /* турнирная сетка */
+  --bracket-line-color: #53709b;
+  --bracket-player-block-color: #fff;
+  --bracket-player-block-bg: #171d30;
+
+  /* эксперимент */
+  --bracket-line-color: #53709b;
+  --bracket-player-block-color: #fff;
+  --bracket-player-block-bg: var(--surface-depth-3);
+  --bracket-accent-text: rgba(255, 174, 0, 0.823);
+
+  /* блоки на главной */
+  --border-radius: 20px;
+
+  /* цвета текста */
+  --color-text-light: rgb(167, 167, 167);
+
+  /* высота блока контента на странице турнира - чтобы при переключении вкладок сайт не прыгал */
+  --tournament-content-height: calc(100vh - 160px);
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  overflow-y: scroll;
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  height: 100%;
+  color: white;
+  font-family: "Mulish", sans-serif;
+  font-style: normal;
+  line-height: 1.5;
+  font-size: 16px;
+
+  background-color: var(--surface-depth-1);
+}
+
+#root {
+  height: 100%;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button,
+input,
+iframe {
+  background: none;
+  border: none;
+  outline: none;
+}
