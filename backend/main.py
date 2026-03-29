@@ -124,14 +124,10 @@ async def match_route(id: uuid.UUID):
     return matches[id]
 
 
-# создать матч
+# обновить матч (игрок делает ход)
 @app.patch("/match/{id}")
 async def match_route(id: uuid.UUID, data: UpdateMatch):
-  print(id)
-  print(data)
-
   match = matches[id]
-  print(match)
   # проверка, что сейчас твой ход и ячейка пуста
   if match.current_player_move == 1 and data.current_player.id != match.player_1.id:
       raise HTTPException(status_code=403, detail="It's not your move now!")
@@ -145,12 +141,14 @@ async def match_route(id: uuid.UUID, data: UpdateMatch):
   match.current_player_move = 1 if match.current_player_move == 2 else 2
   return match
 
+
 # список матчей
 @app.get("/dev/matches/")
 async def matches_route() -> dict:
     return matches
 
-# найти матч
+
+# найти матч по игроку
 @app.get("/match/")
 async def match_route(username: str, id: uuid.UUID) -> Match:
   player = Player(id=id, username=username)
