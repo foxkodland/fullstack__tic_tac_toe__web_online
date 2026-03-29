@@ -36,9 +36,3 @@
 .player_row:hover {
     background-color: var(--surface-depth-4);
 }
-
-.wrap_back {
-    position: absolute;
-    top: 100px;
-    left: 30px;
-}

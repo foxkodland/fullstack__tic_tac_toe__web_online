@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage/LoginPage.tsx';
 import PlayersPage from "./pages/PlayersPage/PlayersPage.tsx";
 import GamePage from "./pages/GamePage/GamePage.tsx";
 
+// TODO - кнопка готова на странице с игроками
 
 function App() {
   return (

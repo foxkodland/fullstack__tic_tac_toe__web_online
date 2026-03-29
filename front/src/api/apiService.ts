@@ -8,7 +8,7 @@ export class ApiService {
     async registation({ username }: { username: string }): Promise<RegistrationResponse> {
         try {
             const endpoint = `/registation`
-            const response = await apiClient.post<Player>(endpoint, {username: username});
+            const response = await apiClient.post<Player>(endpoint, { username: username });
             return {
                 success: true,
                 result: response
@@ -54,7 +54,7 @@ export class ApiService {
     async createMatch(currentPlayer: Player, enemyPlayer: Player): Promise<MatchResponse> {
         try {
             const endpoint = `/match`
-            const response = await apiClient.post<Match>(endpoint, {current_player: currentPlayer, enemy_player: enemyPlayer});
+            const response = await apiClient.post<Match>(endpoint, { current_player: currentPlayer, enemy_player: enemyPlayer });
             return {
                 success: true,
                 result: response
@@ -100,7 +100,7 @@ export class ApiService {
     async makeMove(matchId: string, data: UpdateMatch): Promise<MatchResponse> {
         try {
             const endpoint = `/match/${matchId}`
-            const response = await apiClient.patch<Match>(endpoint, {...data});
+            const response = await apiClient.patch<Match>(endpoint, { ...data });
             return {
                 success: true,
                 result: response
@@ -123,7 +123,7 @@ export class ApiService {
     async deletePlayer(currentPlayer: Player): Promise<PlayersResponse> {
         try {
             const endpoint = `/players`
-            const response = await apiClient.delete<Player[]>(endpoint, {...currentPlayer});
+            const response = await apiClient.delete<Player[]>(endpoint, { ...currentPlayer });
             return {
                 success: true,
                 result: response
@@ -153,15 +153,58 @@ export class ApiService {
             };
 
         } catch (error: any) {
-            console.error('Error:', error);
+            if (error.status != 404) {
+                console.error('Error:', error);
+                return {
+                    success: false,
+                    error: {
+                        message: error.message || 'Ошибка авторизации',
+                        status: error.status || 500,
+                        errors: error.errors
+                    }
+                };
+            }
             return {
                 success: false,
-                error: {
-                    message: error.message || 'Ошибка авторизации',
-                    status: error.status || 500,
-                    errors: error.errors
-                }
+                    error: {
+                        message: '404 в этом методе - это норма, просто соперник не выбрал нас',
+                        status: error.status || 500,
+                        errors: error.errors
+                    }
+            }
+        }
+    }
+
+    // игрок покинул матч
+    async leaveMatch(id: string, currentPlayer: Player): Promise<MatchResponse> {
+        try {
+            const endpoint = `/match/${id}/leave`
+            const response = await apiClient.patch<Match>(endpoint, currentPlayer);
+            return {
+                success: true,
+                result: response
             };
+
+        } catch (error: any) {
+            if (error.status != 404) {
+                console.error('Error:', error);
+                return {
+                    success: false,
+                    error: {
+                        message: error.message || 'Ошибка авторизации',
+                        status: error.status || 500,
+                        errors: error.errors
+                    }
+                };
+            }
+            return {
+                success: false,
+                    error: {
+                        message: '404 в этом методе - это норма, просто соперник не выбрал нас',
+                        status: error.status || 500,
+                        errors: error.errors
+                    }
+            }
         }
     }
 }

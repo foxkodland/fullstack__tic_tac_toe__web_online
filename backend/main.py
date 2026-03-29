@@ -1,10 +1,12 @@
 import uuid
+import time
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 
 from models.models import CreateMatchRequest, Player, Registation, Match, UpdateMatch
+from services.game_logic import find_winner
 
 
 app = FastAPI()
@@ -62,6 +64,10 @@ matches = {
 )
 }
 
+def delete_match_from_stack(match_id: uuid.UUID):
+    time.sleep(5)
+    del matches[match_id]
+
 
 @app.get("/players")
 async def players_route() -> list[Player]:
@@ -69,7 +75,8 @@ async def players_route() -> list[Player]:
 
 @app.delete("/players")
 async def players_route(player: Player) -> list[Player]:
-    players.remove(player)
+    if player in players:
+        players.remove(player)
     return players
 
 # регистрация игрока
@@ -116,9 +123,6 @@ async def match_route(data: CreateMatchRequest):
 # получить матч
 @app.get("/match/{id}")
 async def match_route(id: uuid.UUID):
-    print(id)
-    print(type(id))
-    print(matches)
     if id not in matches:
         raise HTTPException(status_code=404, detail="match not found")
     return matches[id]
@@ -126,20 +130,31 @@ async def match_route(id: uuid.UUID):
 
 # обновить матч (игрок делает ход)
 @app.patch("/match/{id}")
-async def match_route(id: uuid.UUID, data: UpdateMatch):
-  match = matches[id]
-  # проверка, что сейчас твой ход и ячейка пуста
-  if match.current_player_move == 1 and data.current_player.id != match.player_1.id:
-      raise HTTPException(status_code=403, detail="It's not your move now!")
-  if match.current_player_move == 2 and data.current_player.id != match.player_2.id:
-      raise HTTPException(status_code=403, detail="It's not your move now!")
-  if match.map[data.index_cell]:
-      raise HTTPException(status_code=403, detail="Hoidli has already entered this cell")
-  
-  move = "X" if match.current_player_move == 1 else "O"
-  match.map[data.index_cell] = move
-  match.current_player_move = 1 if match.current_player_move == 2 else 2
-  return match
+async def match_route(id: uuid.UUID, data: UpdateMatch, background_tasks: BackgroundTasks):
+    if id not in matches:
+        raise HTTPException(status_code=404, detail="Match not found")
+    match = matches[id]
+    # проверка, что сейчас твой ход и ячейка пуста
+    if match.current_player_move == 1 and data.current_player.id != match.player_1.id:
+        raise HTTPException(status_code=403, detail="It's not your move now!")
+    if match.current_player_move == 2 and data.current_player.id != match.player_2.id:
+        raise HTTPException(status_code=403, detail="It's not your move now!")
+    if match.map[data.index_cell]:
+        raise HTTPException(status_code=403, detail="Hoidli has already entered this cell")
+    if match.winner:
+        raise HTTPException(status_code=403, detail="The winner has already been announced. The match cannot be edited.")
+
+    move = "X" if match.current_player_move == 1 else "O"
+    match.map[data.index_cell] = move
+    match.current_player_move = 1 if match.current_player_move == 2 else 2
+
+	# проверка на победу
+    winner = find_winner(match.map)
+    if winner:
+        match.winner = 1 if winner == "X" else 2
+        background_tasks.add_task(delete_match_from_stack, match.id)
+
+    return match
 
 
 # список матчей
@@ -151,10 +166,27 @@ async def matches_route() -> dict:
 # найти матч по игроку
 @app.get("/match/")
 async def match_route(username: str, id: uuid.UUID) -> Match:
-  player = Player(id=id, username=username)
+    player = Player(id=id, username=username)
 
-  for keys in matches:
-      match = matches[keys]
-      if match.player_1 == player or match.player_2 == player:
-          return match
-  raise HTTPException(status_code=404, detail="This player is not participating in the match")
+    for keys in matches:
+        match = matches[keys]
+        if match.player_1 == player or match.player_2 == player:
+            return match
+    raise HTTPException(status_code=404, detail="This player is not participating in the match")
+
+
+# игрок покинул матч
+@app.patch("/match/{id}/leave")
+async def match_route(id: uuid.UUID, player: Player, background_tasks: BackgroundTasks) -> Match:
+    # проверки
+    if id not in matches:
+        raise HTTPException(status_code=404, detail="This match not found")
+
+    match = matches[id]
+    if match.player_1 == player:
+        match.winner = 2
+    elif match.player_2 == player:
+        match.winner = 1
+    background_tasks.add_task(delete_match_from_stack, match.id)
+    
+    return match

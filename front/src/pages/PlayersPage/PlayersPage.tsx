@@ -33,7 +33,10 @@ export default function PlayersPage() {
         const response = await apiService.findMatch({ ...currentPlayer })
         // если игрока кто-то выбрал для матча, перейти на страницу с игрой
         if (response.success && response.result) {
-            navigator(`/match/${response.result.id}`)
+            if (!response.result?.winner) { // чтобы на сыгранный матч не было редиректа, там никто никого не ждёт для игры
+                console.log("редирект на матч, response.result?.winner", response.result?.winner);
+                navigator(`/match/${response.result?.id}`)
+            }
         }
     }
 
@@ -89,11 +92,12 @@ export default function PlayersPage() {
     return (
         <>
             <div className={style.page}>
-                <div className={style.wrap_back}>
+                <div className={global_styles.wrap_back}>
                     <Button text="Назад" onClick={backward} />
                 </div>
                 <div className={style.content}>
                     <h1 className={global_styles.heading}>Список игроков</h1>
+                    <p className={global_styles.info}>Выберите оппонента или ожидайте, когда кто-то сыграет с вами</p>
                     <div className={style.players_block}>
                         {players.map(playerObj =>
                             <div key={playerObj.id} className={style.player_row}>

@@ -21,6 +21,7 @@ class Match(BaseModel):
     player_2: Player
     current_player_move: Literal[1, 2] # чья очередь ходить
     map: list[Literal["", "X", "O"]] # поле - это список из 9 элементов
+    winner: Literal[1, 2] | None = None
 
 class UpdateMatch(BaseModel):
     current_player: Player

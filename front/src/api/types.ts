@@ -32,7 +32,8 @@ export interface Match {
     player_1: Player;
     player_2: Player;
     current_player_move: 1 | 2;
-    map: AllowedCharsMap[]
+    map: AllowedCharsMap[];
+    winner: 1 | 2 | null;
 }
 
 export interface MatchResponse {
@@ -48,4 +49,11 @@ export interface MatchResponse {
 export interface UpdateMatch {
     current_player: Player;
     index_cell: AllowedIndexMap;
+}
+
+// ошибки api
+export interface ApiError {
+    message: string;
+    status: number;
+    errors?: { [key: string]: string[] };
 }
