@@ -6,6 +6,7 @@ import { apiService } from "../../api/apiService";
 import { setToLocalStorage } from "../../storage/localStorage";
 import { KEY_USERNAME_IN_STORAGE, KEY_UUID_IN_STORAGE } from "../../config";
 
+
 export default function LoginPage() {
     const navigator = useNavigate()
     const [username, setUsername] = useState("");

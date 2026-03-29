@@ -1,0 +1,41 @@
+
+.map {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    width: min-content;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.cell {
+    --size: 70px;
+    width: var(--size);
+    height: var(--size);
+    border: 1px solid var(--border-color);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-weight: 700;
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+.cell:nth-child(1) {
+    border-top-left-radius: 20px;
+}
+
+.cell:nth-child(3) {
+    border-top-right-radius: 20px;
+}
+
+.cell:nth-child(7) {
+    border-bottom-left-radius: 20px;
+}
+
+.cell:nth-child(9) {
+    border-bottom-right-radius: 20px;
+}

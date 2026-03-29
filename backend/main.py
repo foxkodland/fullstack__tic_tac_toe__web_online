@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from models.models import CreateMatchRequest, Player, Registation, Match
+from models.models import CreateMatchRequest, Player, Registation, Match, UpdateMatch
 
 
 app = FastAPI()
@@ -17,14 +17,60 @@ app.add_middleware(
 )
 
 players: list[Player] = []
-matches = {}
+matches = dict[uuid.UUID, Match]
 empty_map = [""] * 9
+
+# удалить
+players: list[Player] = [
+  Player.model_validate({
+    "username": "me",
+    "id": "3992d3fd-87c0-46a8-846d-0d5ca8d5fab5"
+  }),
+  Player.model_validate({
+    "username": "string",
+    "id": "b642dd1e-032b-4d8b-8b8d-5bf369407a8a"
+  }),
+  Player.model_validate({
+    "username": "string1",
+    "id": "f3604101-4757-4e43-bce9-bc9bb6d18dbd"
+  })
+]
+matches = {
+    uuid.UUID("fde3d66d-9bb3-4d9b-9df1-941d3f068682"): Match.model_validate({
+    "id": "fde3d66d-9bb3-4d9b-9df1-941d3f068682",
+    "player_1": Player.model_validate({
+      "username": "me",
+      "id": "3992d3fd-87c0-46a8-846d-0d5ca8d5fab5"
+    }),
+    "player_2": Player.model_validate({
+      "username": "string",
+      "id": "b642dd1e-032b-4d8b-8b8d-5bf369407a8a"
+    }),
+    "current_player_move": 1,
+    "map": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  }
+)
+}
 
 
 @app.get("/players")
 async def players_route() -> list[Player]:
     return players
 
+@app.delete("/players")
+async def players_route(player: Player) -> list[Player]:
+    players.remove(player)
+    return players
 
 # регистрация игрока
 @app.post("/registation")
@@ -72,11 +118,45 @@ async def match_route(data: CreateMatchRequest):
 async def match_route(id: uuid.UUID):
     print(id)
     print(type(id))
+    print(matches)
     if id not in matches:
         raise HTTPException(status_code=404, detail="match not found")
     return matches[id]
+
+
+# создать матч
+@app.patch("/match/{id}")
+async def match_route(id: uuid.UUID, data: UpdateMatch):
+  print(id)
+  print(data)
+
+  match = matches[id]
+  print(match)
+  # проверка, что сейчас твой ход и ячейка пуста
+  if match.current_player_move == 1 and data.current_player.id != match.player_1.id:
+      raise HTTPException(status_code=403, detail="It's not your move now!")
+  if match.current_player_move == 2 and data.current_player.id != match.player_2.id:
+      raise HTTPException(status_code=403, detail="It's not your move now!")
+  if match.map[data.index_cell]:
+      raise HTTPException(status_code=403, detail="Hoidli has already entered this cell")
+  
+  move = "X" if match.current_player_move == 1 else "O"
+  match.map[data.index_cell] = move
+  match.current_player_move = 1 if match.current_player_move == 2 else 2
+  return match
 
 # список матчей
 @app.get("/dev/matches/")
 async def matches_route() -> dict:
     return matches
+
+# найти матч
+@app.get("/match/")
+async def match_route(username: str, id: uuid.UUID) -> Match:
+  player = Player(id=id, username=username)
+
+  for keys in matches:
+      match = matches[keys]
+      if match.player_1 == player or match.player_2 == player:
+          return match
+  raise HTTPException(status_code=404, detail="This player is not participating in the match")

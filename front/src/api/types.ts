@@ -25,6 +25,7 @@ export interface PlayersResponse {
 }
 
 type AllowedCharsMap = "" | "X" | "O";
+export type AllowedIndexMap = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7| 8;
 
 export interface Match {
     id: string;
@@ -34,7 +35,7 @@ export interface Match {
     map: AllowedCharsMap[]
 }
 
-export interface CreateMatchResponse {
+export interface MatchResponse {
     success: boolean;
     result?: Match;
     error?: {
@@ -42,4 +43,9 @@ export interface CreateMatchResponse {
         status: number;
         errors?: any;
     };
+}
+
+export interface UpdateMatch {
+    current_player: Player;
+    index_cell: AllowedIndexMap;
 }

@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import style from "./PlayersPage.module.css";
 import global_styles from "../../styles/global.module.css";
 import { apiService } from "../../api/apiService";
 import type { Player } from "../../api/types";
 import { deleteFromLocalStorage, getFromLocalStorage } from "../../storage/localStorage";
-import Button from "../../Button/Button";
+import Button from "../../components/Button/Button";
 import { KEY_USERNAME_IN_STORAGE, KEY_UUID_IN_STORAGE } from "../../config";
 import { useNavigate } from "react-router-dom";
 
+
 export default function PlayersPage() {
     const navigator = useNavigate()
+    const intervalIdRef = useRef<number | null>(null);
     const [players, setPlayers] = useState<Player[]>([]);
     const myUuid = getFromLocalStorage(KEY_UUID_IN_STORAGE)
 
@@ -20,11 +22,50 @@ export default function PlayersPage() {
         }
     }
 
-    useEffect(() => {
-        apiGetPlayers()
-    }, [])
+    const apiFindMatch = async () => {
+        const username = getFromLocalStorage(KEY_USERNAME_IN_STORAGE)
+        const id = getFromLocalStorage(KEY_UUID_IN_STORAGE)
+        if (!username || !id) return
+        const currentPlayer = {
+            "username": username,
+            "id": id
+        }
+        const response = await apiService.findMatch({ ...currentPlayer })
+        // если игрока кто-то выбрал для матча, перейти на страницу с игрой
+        if (response.success && response.result) {
+            navigator(`/match/${response.result.id}`)
+        }
+    }
 
-    const backward = () => {
+    useEffect(() => {
+        const getApiData = () => {
+            apiGetPlayers();
+            apiFindMatch();
+        }
+        getApiData()
+        intervalIdRef.current = setInterval(getApiData, 1000);
+
+        return () => {
+            if (intervalIdRef.current) {
+                console.log("Clearing interval...");
+                clearInterval(intervalIdRef.current);
+                intervalIdRef.current = null;
+            }
+        };
+    }, []);
+
+    const backward = async () => {
+        // отправить api запрос, чтобы удалить игрока из списка игроков
+        const username = getFromLocalStorage(KEY_USERNAME_IN_STORAGE)
+        const id = getFromLocalStorage(KEY_UUID_IN_STORAGE)
+        if (!username || !id) return
+        const currentPlayer = {
+            "username": username,
+            "id": id
+        }
+        await apiService.deletePlayer({ ...currentPlayer })
+
+        // удалить localstorage И перейти на главную
         deleteFromLocalStorage(KEY_UUID_IN_STORAGE)
         navigator("/")
     }
@@ -35,7 +76,7 @@ export default function PlayersPage() {
         if (!username || !id) return
         const currentPlayer = {
             "username": username,
-            "id": id 
+            "id": id
         }
         const response = await apiService.createMatch(currentPlayer, enemy_player);
         if (response.success) {
