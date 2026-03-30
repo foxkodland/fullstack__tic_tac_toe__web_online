@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import style from "./PlayersPage.module.css";
 import global_styles from "../../styles/global.module.css";
 import { apiService } from "../../api/apiService";
-import type { Player } from "../../api/types";
 import { deleteFromLocalStorage, getFromLocalStorage } from "../../storage/localStorage";
 import Button from "../../components/Button/Button";
 import { KEY_USERNAME_IN_STORAGE, KEY_UUID_IN_STORAGE } from "../../config";
 import { useNavigate } from "react-router-dom";
+import type { Player } from "../../types/types";
 
 
 export default function PlayersPage() {
