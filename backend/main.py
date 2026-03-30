@@ -116,10 +116,9 @@ async def update_match_route(id: uuid.UUID, data: UpdateMatch, background_tasks:
     elif match.map.count("") == 0:
         match.winner = "draw"
 
-    # !!!!!!!!!!!!!!!!!!!!!!! раскоментируй
     # удалить матч из списка матчей через время
-    # if match.winner:
-    #     background_tasks.add_task(delete_match_from_stack, match.id)
+    if match.winner:
+        background_tasks.add_task(delete_match_from_stack, match.id)
     return match
 
 
