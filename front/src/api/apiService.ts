@@ -1,5 +1,6 @@
+import type { Match, Player } from '../types/types';
 import { apiClient } from './client';
-import type { MatchResponse, Match, Player, PlayersResponse, RegistrationResponse, UpdateMatch } from './types';
+import type { MatchResponse, PlayersResponse, RegistrationResponse, UpdateMatch } from './types';
 
 
 export class ApiService {
@@ -7,7 +8,7 @@ export class ApiService {
     // регистрация
     async registation({ username }: { username: string }): Promise<RegistrationResponse> {
         try {
-            const endpoint = `/registation`
+            const endpoint = `/players`
             const response = await apiClient.post<Player>(endpoint, { username: username });
             return {
                 success: true,
@@ -53,7 +54,7 @@ export class ApiService {
     // создать матч между 2 игроками
     async createMatch(currentPlayer: Player, enemyPlayer: Player): Promise<MatchResponse> {
         try {
-            const endpoint = `/match`
+            const endpoint = `/matches`
             const response = await apiClient.post<Match>(endpoint, { current_player: currentPlayer, enemy_player: enemyPlayer });
             return {
                 success: true,
@@ -76,7 +77,7 @@ export class ApiService {
     // получить 1 матч
     async getMatch(matchId: string): Promise<MatchResponse> {
         try {
-            const endpoint = `/match/${matchId}`
+            const endpoint = `/matches/${matchId}`
             const response = await apiClient.get<Match>(endpoint);
             return {
                 success: true,
@@ -99,7 +100,7 @@ export class ApiService {
     // сделать ход
     async makeMove(matchId: string, data: UpdateMatch): Promise<MatchResponse> {
         try {
-            const endpoint = `/match/${matchId}`
+            const endpoint = `/matches/${matchId}`
             const response = await apiClient.patch<Match>(endpoint, { ...data });
             return {
                 success: true,
@@ -145,7 +146,7 @@ export class ApiService {
     // найти матч по игроку
     async findMatch(currentPlayer: Player): Promise<MatchResponse> {
         try {
-            const endpoint = `/match/?username=${currentPlayer.username}&id=${currentPlayer.id}`
+            const endpoint = `/matches/?username=${currentPlayer.username}&id=${currentPlayer.id}`
             const response = await apiClient.get<Match>(endpoint);
             return {
                 success: true,
@@ -178,7 +179,7 @@ export class ApiService {
     // игрок покинул матч
     async leaveMatch(id: string, currentPlayer: Player): Promise<MatchResponse> {
         try {
-            const endpoint = `/match/${id}/leave`
+            const endpoint = `/matches/${id}/leave`
             const response = await apiClient.patch<Match>(endpoint, currentPlayer);
             return {
                 success: true,

@@ -46,7 +46,7 @@ export default function PlayersPage() {
             apiFindMatch();
         }
         getApiData()
-        intervalIdRef.current = setInterval(getApiData, 1000);
+        intervalIdRef.current = setInterval(getApiData, 5000);
 
         return () => {
             if (intervalIdRef.current) {
@@ -97,7 +97,7 @@ export default function PlayersPage() {
                 </div>
                 <div className={style.content}>
                     <h1 className={global_styles.heading}>Список игроков</h1>
-                    <p className={global_styles.info}>Выберите оппонента или ожидайте, когда кто-то сыграет с вами</p>
+                    <p className={global_styles.info}>Выберите оппонента или ожидайте, когда кто-то выберет вас</p>
                     <div className={style.players_block}>
                         {players.map(playerObj =>
                             <div key={playerObj.id} className={style.player_row}>

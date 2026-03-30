@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import style from "./LoginPage.module.css";
 import global_styles from "../../styles/global.module.css";
 import { useNavigate } from "react-router-dom";
 import { apiService } from "../../api/apiService";
-import { setToLocalStorage } from "../../storage/localStorage";
+import { getFromLocalStorage, setToLocalStorage } from "../../storage/localStorage";
 import { KEY_USERNAME_IN_STORAGE, KEY_UUID_IN_STORAGE } from "../../config";
 
 
@@ -25,6 +25,13 @@ export default function LoginPage() {
         navigator("/players")
     }
 
+    useEffect(()=>{
+        const usernameStorage = getFromLocalStorage(KEY_USERNAME_IN_STORAGE)
+        if (usernameStorage) {
+            setUsername(usernameStorage)
+        }
+    }, [])
+
     return (
         <>
             <div className={style.page}>
@@ -32,7 +39,7 @@ export default function LoginPage() {
                     <h2 className={global_styles.heading}>Tik-tak-toe online</h2>
                     <div className={style.wrap_input}>
                         <input className={style.input} value={username} onChange={(e) => setUsername(e.target.value)} type="text" placeholder="укажите ваш ник" />
-                        <button className={style.button} onClick={buttonLoginHandler}>Начать</button>
+                        <button className={style.button} onClick={buttonLoginHandler}>Присоединиться</button>
                     </div>
                 </div>
             </div>

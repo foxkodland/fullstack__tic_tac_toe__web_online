@@ -4,8 +4,7 @@ import time
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
-
-from models.models import CreateMatchRequest, Player, Registation, Match, UpdateMatch
+from models.models import CreateMatch, Player, Registation, Match, UpdateMatch
 from services.game_logic import find_winner
 
 
@@ -19,50 +18,9 @@ app.add_middleware(
 )
 
 players: list[Player] = []
-matches = dict[uuid.UUID, Match]
+matches: dict[uuid.UUID, Match] = {}
 empty_map = [""] * 9
 
-# удалить
-players: list[Player] = [
-  Player.model_validate({
-    "username": "me",
-    "id": "3992d3fd-87c0-46a8-846d-0d5ca8d5fab5"
-  }),
-  Player.model_validate({
-    "username": "string",
-    "id": "b642dd1e-032b-4d8b-8b8d-5bf369407a8a"
-  }),
-  Player.model_validate({
-    "username": "string1",
-    "id": "f3604101-4757-4e43-bce9-bc9bb6d18dbd"
-  })
-]
-matches = {
-    uuid.UUID("fde3d66d-9bb3-4d9b-9df1-941d3f068682"): Match.model_validate({
-    "id": "fde3d66d-9bb3-4d9b-9df1-941d3f068682",
-    "player_1": Player.model_validate({
-      "username": "me",
-      "id": "3992d3fd-87c0-46a8-846d-0d5ca8d5fab5"
-    }),
-    "player_2": Player.model_validate({
-      "username": "string",
-      "id": "b642dd1e-032b-4d8b-8b8d-5bf369407a8a"
-    }),
-    "current_player_move": 1,
-    "map": [
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      ""
-    ]
-  }
-)
-}
 
 def delete_match_from_stack(match_id: uuid.UUID):
     time.sleep(5)
@@ -73,14 +31,16 @@ def delete_match_from_stack(match_id: uuid.UUID):
 async def players_route() -> list[Player]:
     return players
 
+
 @app.delete("/players")
-async def players_route(player: Player) -> list[Player]:
+async def delete_player_route(player: Player) -> list[Player]:
     if player in players:
         players.remove(player)
     return players
 
+
 # регистрация игрока
-@app.post("/registation")
+@app.post("/players")
 async def registation_route(data: Registation) -> Player:
     new_player = Player(id=uuid.uuid4(), username=data.username)
     players.append(new_player)
@@ -88,8 +48,8 @@ async def registation_route(data: Registation) -> Player:
 
 
 # создать матч
-@app.post("/match")
-async def match_route(data: CreateMatchRequest):
+@app.post("/matches")
+async def create_match_route(data: CreateMatch):
     # проверка
     current_player_is_ready, enemy_is_ready = False, False
     for player in players:
@@ -121,16 +81,16 @@ async def match_route(data: CreateMatchRequest):
 
 
 # получить матч
-@app.get("/match/{id}")
-async def match_route(id: uuid.UUID):
+@app.get("/matches/{id}")
+async def get_match_route(id: uuid.UUID):
     if id not in matches:
         raise HTTPException(status_code=404, detail="match not found")
     return matches[id]
 
 
 # обновить матч (игрок делает ход)
-@app.patch("/match/{id}")
-async def match_route(id: uuid.UUID, data: UpdateMatch, background_tasks: BackgroundTasks):
+@app.patch("/matches/{id}")
+async def update_match_route(id: uuid.UUID, data: UpdateMatch, background_tasks: BackgroundTasks):
     if id not in matches:
         raise HTTPException(status_code=404, detail="Match not found")
     match = matches[id]
@@ -147,25 +107,25 @@ async def match_route(id: uuid.UUID, data: UpdateMatch, background_tasks: Backgr
     move = "X" if match.current_player_move == 1 else "O"
     match.map[data.index_cell] = move
     match.current_player_move = 1 if match.current_player_move == 2 else 2
-
-	# проверка на победу
+    
+    # проверка на победу
     winner = find_winner(match.map)
     if winner:
         match.winner = 1 if winner == "X" else 2
-        background_tasks.add_task(delete_match_from_stack, match.id)
+    # проверка на ничью - если не осталось больше свободных полей
+    elif match.map.count("") == 0:
+        match.winner = "draw"
 
+    # !!!!!!!!!!!!!!!!!!!!!!! раскоментируй
+    # удалить матч из списка матчей через время
+    # if match.winner:
+    #     background_tasks.add_task(delete_match_from_stack, match.id)
     return match
 
 
-# список матчей
-@app.get("/dev/matches/")
-async def matches_route() -> dict:
-    return matches
-
-
 # найти матч по игроку
-@app.get("/match/")
-async def match_route(username: str, id: uuid.UUID) -> Match:
+@app.get("/matches/")
+async def get_match_search_route(username: str, id: uuid.UUID) -> Match:
     player = Player(id=id, username=username)
 
     for keys in matches:
@@ -176,8 +136,8 @@ async def match_route(username: str, id: uuid.UUID) -> Match:
 
 
 # игрок покинул матч
-@app.patch("/match/{id}/leave")
-async def match_route(id: uuid.UUID, player: Player, background_tasks: BackgroundTasks) -> Match:
+@app.patch("/matches/{id}/leave")
+async def leave_match_route(id: uuid.UUID, player: Player, background_tasks: BackgroundTasks) -> Match:
     # проверки
     if id not in matches:
         raise HTTPException(status_code=404, detail="This match not found")

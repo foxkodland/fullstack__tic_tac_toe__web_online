@@ -3,11 +3,12 @@ import style from "./GamePage.module.css";
 import global_styles from "../../styles/global.module.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiService } from "../../api/apiService";
-import type { AllowedIndexMap, Match } from "../../api/types";
 import Map from "../../components/Map/Map";
 import { getFromLocalStorage } from "../../storage/localStorage";
 import { KEY_USERNAME_IN_STORAGE, KEY_UUID_IN_STORAGE } from "../../config";
 import Button from "../../components/Button/Button";
+import { findWinner } from "../../services/gameLogic";
+import type { AllowedIndexMap, findWinnerScheme, Match } from "../../types/types";
 
 
 export default function GamePage() {
@@ -17,6 +18,7 @@ export default function GamePage() {
     const intervalIdRef = useRef<number | null>(null);
     const [match, setMatch] = useState<Match>();
     const [infoText, setInfoText] = useState<string>("Скоро старт");
+    const [finishLinePos, setFinishLinePos] = useState<findWinnerScheme>();
 
     const infoBar = {
         setWinner: (match: Match) => {
@@ -27,31 +29,70 @@ export default function GamePage() {
                 "username": username,
                 "id": id
             }
-            if (
+            if (match.winner == "draw") {
+                setInfoText("У вас ничья =/")
+            }
+            else if (
                 (match?.player_1.id == currentPlayer.id && match.winner == 1)
                 || (match?.player_2.id == currentPlayer.id && match.winner == 2)
             ) {
                 setInfoText("Вы победили!")
-            } else {              
+            } else {
                 setInfoText("Вы проиграли =(")
+            }
+        },
+
+        startMatch: () => {
+            if (!match) {
+                console.log("вышел, нет матча", match);
+                
+                return
+            }
+            console.log("здесь");
+            
+            const username = getFromLocalStorage(KEY_USERNAME_IN_STORAGE)
+            const id = getFromLocalStorage(KEY_UUID_IN_STORAGE)
+            if (!username || !id) return
+            const currentPlayer = {
+                "username": username,
+                "id": id
+            }
+            if (match?.player_1.id == currentPlayer.id) {
+                setInfoText("Вы начинаете!")
+            } else {
+                setInfoText("Оппонент ходит первый")
             }
         }
     }
+
+    // проверка, что матч окончен
+    useEffect(() => {
+        if (!match) return
+        if (infoText == 'Скоро старт') {
+            infoBar.startMatch()
+        }
+        if (match.winner) {
+            // поменять надпись над полем
+            infoBar.setWinner(match)
+            // удалить interval
+            if (intervalIdRef.current) {
+                console.log("Clearing interval...");
+                clearInterval(intervalIdRef.current);
+                intervalIdRef.current = null;
+            }
+            // нарисовать линию зачёркивания
+            const result = findWinner(match.map);
+            if (result) {
+                setFinishLinePos(result)
+            }
+        }
+    }, [match])
 
     const apiGetMatch = async (id: string) => {
         const response = await apiService.getMatch(id)
         if (response.success && response.result) {
             setMatch(response.result)
-            if (response.result.winner) {
-                console.log("Установил победителя", response.result.winner);
-                infoBar.setWinner(response.result)
-                // удалить interval
-                if (intervalIdRef.current) {
-                    console.log("Clearing interval...");
-                    clearInterval(intervalIdRef.current);
-                    intervalIdRef.current = null;
-                }
-            }
+            return response.result
         } else {
             console.error("Ошибка получения матча", response.error)
             console.error(response.result)
@@ -78,6 +119,7 @@ export default function GamePage() {
         }
     }
 
+    // получать данные матча
     useEffect(() => {
         // Функция, которая будет вызываться по интервалу
         const fetchMatchData = () => {
@@ -117,7 +159,7 @@ export default function GamePage() {
             "id": id
         }
         await apiService.leaveMatch(matchId, { ...currentPlayer })
-        navigator("/players")
+        navigator("/")
     }
 
     return (
@@ -128,7 +170,7 @@ export default function GamePage() {
                 </div>
                 <h1 className={global_styles.heading}>Поле битвы</h1>
                 <p className={global_styles.info}>{infoText}</p>
-                {match && <Map match={match} onClickCell={playerMove} />}
+                {match && <Map match={match} onClickCell={playerMove} finishLinePos={finishLinePos} />}
             </div>
         </>
     )

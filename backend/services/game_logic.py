@@ -9,17 +9,32 @@ def find_winner(map: list[Literal["", "X", "O"]]) -> Literal["X", "O"] | None:
             6 7 8
     """
     # горизонтали
-    for i in (0,3,6):
-        if map[i] == map[i+1] == map[i+2]:
+    for i in (0, 3, 6):
+        if map[i] and map[i] == map[i + 1] == map[i + 2]:
+            print("горизонталь", i)
             return map[i]
     # вертикали
-    for i in (0,1,2):
-        if map[i] == map[i+3] == map[i+6]:
+    for i in (0, 1, 2):
+        if map[i] and map[i] == map[i + 3] == map[i + 6]:
             return map[i]
     # диагонали
-    if map[0] == map[4] == map[8]:
+    if map[0] and map[0] == map[4] == map[8]:
         return map[0]
-    if map[2] == map[4] == map[7]:
+    if map[2] and map[2] == map[4] == map[6]:
         return map[2]
     return None
-    
+
+
+if __name__ == "__main__":
+    map = [
+        "O",
+        "O",
+        "X",
+        "",
+        "X",
+        "",
+        "X",
+        "",
+        ""
+    ]
+    print(find_winner(map))
